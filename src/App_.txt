@@ -520,10 +520,10 @@ export default function App() {
     } else {
       sections.push({
         title: "Vitals",
-        text: {
-          status: "generated",
-          div: `<div xmlns="http://www.w3.org/1999/xhtml">No vitals recorded</div>`,
-        },
+        // text: {
+        //   status: "generated",
+        //   div: `<div xmlns="http://www.w3.org/1999/xhtml">No vitals recorded</div>`,
+        // },
       });
     }
 
@@ -531,18 +531,18 @@ export default function App() {
       sections.push({
         title: "Physical Activity",
         entry: [{ reference: `urn:uuid:${physObs.id}` }],
-        text: {
-          status: "generated",
-          div: `<div xmlns="http://www.w3.org/1999/xhtml">Physical activity</div>`,
-        },
+        // text: {
+        //   status: "generated",
+        //   div: `<div xmlns="http://www.w3.org/1999/xhtml">Physical activity</div>`,
+        // },
       });
     } else {
       sections.push({
         title: "Physical Activity",
-        text: {
-          status: "generated",
-          div: `<div xmlns="http://www.w3.org/1999/xhtml">No physical activity recorded</div>`,
-        },
+        // text: {
+        //   status: "generated",
+        //   div: `<div xmlns="http://www.w3.org/1999/xhtml">No physical activity recorded</div>`,
+        // },
       });
     }
 
@@ -550,18 +550,18 @@ export default function App() {
       sections.push({
         title: "General Assessment",
         entry: [{ reference: `urn:uuid:${genObs.id}` }],
-        text: {
-          status: "generated",
-          div: `<div xmlns="http://www.w3.org/1999/xhtml">General assessment</div>`,
-        },
+        // text: {
+        //   status: "generated",
+        //   div: `<div xmlns="http://www.w3.org/1999/xhtml">General assessment</div>`,
+        // },
       });
     } else {
       sections.push({
         title: "General Assessment",
-        text: {
-          status: "generated",
-          div: `<div xmlns="http://www.w3.org/1999/xhtml">No general assessment recorded</div>`,
-        },
+        // text: {
+        //   status: "generated",
+        //   div: `<div xmlns="http://www.w3.org/1999/xhtml">No general assessment recorded</div>`,
+        // },
       });
     }
 
@@ -572,18 +572,18 @@ export default function App() {
       sections.push({
         title: "Lifestyle",
         entry: lifestyleEntries,
-        text: {
-          status: "generated",
-          div: `<div xmlns="http://www.w3.org/1999/xhtml">Lifestyle</div>`,
-        },
+        // text: {
+        //   status: "generated",
+        //   div: `<div xmlns="http://www.w3.org/1999/xhtml">Lifestyle</div>`,
+        // },
       });
     } else {
       sections.push({
         title: "Lifestyle",
-        text: {
-          status: "generated",
-          div: `<div xmlns="http://www.w3.org/1999/xhtml">No lifestyle observations recorded</div>`,
-        },
+        // text: {
+        //   status: "generated",
+        //   div: `<div xmlns="http://www.w3.org/1999/xhtml">No lifestyle observations recorded</div>`,
+        // },
       });
     }
 
