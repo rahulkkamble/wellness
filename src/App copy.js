@@ -1,6 +1,5 @@
 // App.js
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -76,7 +75,6 @@ function extractAbhaAddresses(apiPatient) {
 function mapApiToForm(apiP) {
   return {
     api: apiP,
-    originalPatientId: apiP?.id ? String(apiP.id) : "unknown-id",
     resourceId: isUuid(apiP?.user_ref_id) ? apiP.user_ref_id.toLowerCase() : "",
     displayName: apiP?.name || "",
     gender: (apiP?.gender || "").toLowerCase(),
@@ -86,7 +84,7 @@ function mapApiToForm(apiP) {
     abhaRef: apiP?.abha_ref || "",
     abhaAddresses: extractAbhaAddresses(apiP),
     selectedAbhaAddress: undefined,
-    mrn: apiP?.user_ref_id ? apiP.user_ref_id : "",
+    mrn: apiP?.user_id ? String(apiP.user_id) : "",
   };
 }
 
@@ -157,28 +155,26 @@ function buildFhirPatient(form) {
 
 /* Build Practitioner resource (single, generated id) */
 function buildPractitioner(pract) {
-  const pract = window.GlobalPractitioner;
   const id = uuidv4();
   return {
     resourceType: "Practitioner",
     id,
     meta: { profile: [NDHM_PRACTITIONER_PROFILE] },
-    text: { status: "generated", div: `<div xmlns="http://www.w3.org/1999/xhtml"><p>${pract.name[0].text}</p></div>` },
+    text: { status: "generated", div: `<div xmlns="http://www.w3.org/1999/xhtml"><p>${pract.name}</p></div>` },
     identifier: [
       {
         system: "https://ndhm.in/practitioner/license",
-        value: String(pract.identifier[0].value || ""),
+        value: String(pract.license || ""),
         type: { coding: [{ system: V2_0203, code: "MD", display: "Medical License number" }], text: "Medical License number" },
       },
       {
         system: "https://your.system/login-id",
-        value: String(pract.id || ""),
+        value: String(pract.loginId || ""),
         type: { coding: [{ system: V2_0203, code: "PN", display: "Person number" }], text: "Login id" },
       },
     ],
-    name: [{ text: pract.name[0].text }],
+    name: [{ text: pract.name }],
   };
-
 }
 
 /* Chosen, validator-friendly code slices:
