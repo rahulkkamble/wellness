@@ -1,7 +1,6 @@
 // App.js
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -88,37 +87,37 @@ function mapApiToForm(apiP) {
 }
 
 /* Resolve practitioner from window.GlobalPractitioner (FHIR) to {loginId,name,license} */
-function resolveGlobalPractitioner() {
-  const gp =
-    (typeof window !== "undefined" && (window.GlobalPractitioner || window.GlobalPractitionerFHIR)) ||
-    null;
+// function resolveGlobalPractitioner() {
+//   const gp =
+//     (typeof window !== "undefined" && (window.GlobalPractitioner || window.GlobalPractitionerFHIR)) ||
+//     null;
 
-  const fallback = { loginId: "pract-001", name: "Dr. ABC", license: "LIC-1234" };
+//   const fallback = { loginId: "pract-001", name: "Dr. ABC", license: "LIC-1234" };
 
-  if (!gp) return fallback;
+//   if (!gp) return fallback;
 
-  // If already flattened
-  if (gp && typeof gp === "object" && typeof gp.name === "string") {
-    return {
-      loginId: gp.id || fallback.loginId,
-      name: gp.name || fallback.name,
-      license: gp.license || fallback.license,
-    };
-  }
+//   // If already flattened
+//   if (gp && typeof gp === "object" && typeof gp.name === "string") {
+//     return {
+//       loginId: gp.id || fallback.loginId,
+//       name: gp.name || fallback.name,
+//       license: gp.license || fallback.license,
+//     };
+//   }
 
-  // FHIR Practitioner shape
-  const name =
-    (Array.isArray(gp?.name) && gp?.name?.[0]?.text) ||
-    (typeof gp?.name === "string" ? gp?.name : "") ||
-    fallback.name;
-  const license =
-    (Array.isArray(gp?.identifier) && gp?.identifier?.[0]?.value) ||
-    (typeof gp?.license === "string" ? gp?.license : "") ||
-    fallback.license;
-  const loginId = gp?.id || fallback.loginId;
+//   // FHIR Practitioner shape
+//   const name =
+//     (Array.isArray(gp?.name) && gp?.name?.[0]?.text) ||
+//     (typeof gp?.name === "string" ? gp?.name : "") ||
+//     fallback.name;
+//   const license =
+//     (Array.isArray(gp?.identifier) && gp?.identifier?.[0]?.value) ||
+//     (typeof gp?.license === "string" ? gp?.license : "") ||
+//     fallback.license;
+//   const loginId = gp?.id || fallback.loginId;
 
-  return { loginId, name, license };
-}
+//   return { loginId, name, license };
+// }
 
 /* Resolve practitioner from window.GlobalPractitioner (FHIR) to {loginId,name,license} */
 function resolveGlobalPractitioner() {
@@ -224,7 +223,7 @@ function buildFhirPatient(form) {
 
 /* Build Practitioner resource (unchanged shape; id generated locally) */
 function buildPractitioner(pract) {
-  const pract = window.GlobalPractitioner;
+  // const pract = window.GlobalPractitioner;
   const id = uuidv4();
   return {
     resourceType: "Practitioner",
@@ -448,7 +447,7 @@ export default function App() {
 
   async function generateBundle() {
     setMessage("");
-    setBundleJson("");
+    // setBundleJson("");
 
     if (!form) return setMessage("Please select a patient.");
     if (!form.selectedAbhaAddress && !form.abhaRef) return setMessage("Please select ABHA address.");
@@ -663,7 +662,7 @@ export default function App() {
     );
 
     // Axios POST (like before) with original patient id from API data
-    const originalPatientId = String(form?.api?.id || "");
+    const originalPatientId = Number(form?.api?.user_id);
     console.log("Submitting for patient:", originalPatientId);
     try {
       const resp = await axios.post("https://uat.discharge.org.in/api/v5/fhir-bundle", {
@@ -948,7 +947,7 @@ export default function App() {
         <button className="btn btn-success me-2" onClick={generateBundle}>
           Generate FHIR Bundle
         </button>
-        <button
+        {/* <button
           className="btn btn-outline-secondary"
           onClick={() => {
             setBundleJson("");
@@ -956,12 +955,12 @@ export default function App() {
           }}
         >
           Reset Preview
-        </button>
+        </button> */}
       </div>
 
       {message && <div className="alert alert-warning">{message}</div>}
 
-      {bundleJson && (
+      {/* {bundleJson && (
         <div id="bundlePreview" className="card mb-4">
           <div className="card-header d-flex justify-content-between align-items-center">
             <div>Generated FHIR Bundle</div>
@@ -975,13 +974,13 @@ export default function App() {
             <pre style={{ maxHeight: 520, overflow: "auto" }}>{bundleJson}</pre>
           </div>
         </div>
-      )}
+      )} */}
 
-      <div className="text-muted small">
+      {/* <div className="text-muted small">
         Notes: coding uses LOINC (http://loinc.org) or SNOMED (http://snomed.info/sct) to satisfy NDHM
         slicing; Composition sections include proper text objects when empty to obey cmp-1. If Inferno
         shows remaining messages, paste the exact validator output and I'll patch the bundle line-by-line.
-      </div>
+      </div> */}
     </div>
   );
 }

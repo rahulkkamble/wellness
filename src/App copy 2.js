@@ -342,7 +342,7 @@ export default function App() {
   const [vitals, setVitals] = useState({ hr: "", systolic: "", diastolic: "", temp: "", spo2: "" });
   const [body, setBody] = useState({ height: "", weight: "", bmi: "" });
 
-  // const [bundleJson, setBundleJson] = useState("");
+  const [bundleJson, setBundleJson] = useState("");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -414,7 +414,7 @@ export default function App() {
 
   async function generateBundle() {
     setMessage("");
-    // setBundleJson("");
+    setBundleJson("");
 
     if (!form) return setMessage("Please select a patient.");
     if (!form.selectedAbhaAddress && !form.abhaRef) return setMessage("Please select ABHA address.");
@@ -623,7 +623,7 @@ export default function App() {
     for (const o of observations) bundle.entry.push({ fullUrl: `urn:uuid:${o.id}`, resource: o });
 
     const json = JSON.stringify(bundle, null, 2);
-    // setBundleJson(json);
+    setBundleJson(json);
     setMessage(
       "Bundle generated — copy-paste into Inferno/validator. If any remaining validation errors appear, paste them and I'll patch them exactly."
     );
@@ -648,10 +648,10 @@ export default function App() {
     }, 80);
   }
 
-  // function copyBundle() {
-  //   if (!bundleJson) return;
-  //   navigator.clipboard.writeText(bundleJson).then(() => alert("Copied bundle JSON to clipboard"));
-  // }
+  function copyBundle() {
+    if (!bundleJson) return;
+    navigator.clipboard.writeText(bundleJson).then(() => alert("Copied bundle JSON to clipboard"));
+  }
 
   return (
     <div className="container my-4">
@@ -914,20 +914,20 @@ export default function App() {
         <button className="btn btn-success me-2" onClick={generateBundle}>
           Generate FHIR Bundle
         </button>
-        {/* <button
+        <button
           className="btn btn-outline-secondary"
           onClick={() => {
-            // setBundleJson("");
+            setBundleJson("");
             setMessage("");
           }}
         >
           Reset Preview
-        </button> */}
+        </button>
       </div>
 
       {message && <div className="alert alert-warning">{message}</div>}
 
-      {/* {bundleJson && (
+      {bundleJson && (
         <div id="bundlePreview" className="card mb-4">
           <div className="card-header d-flex justify-content-between align-items-center">
             <div>Generated FHIR Bundle</div>
@@ -941,8 +941,13 @@ export default function App() {
             <pre style={{ maxHeight: 520, overflow: "auto" }}>{bundleJson}</pre>
           </div>
         </div>
-      )} */}
+      )}
 
+      <div className="text-muted small">
+        Notes: coding uses LOINC (http://loinc.org) or SNOMED (http://snomed.info/sct) to satisfy NDHM
+        slicing; Composition sections include proper text objects when empty to obey cmp-1. If Inferno
+        shows remaining messages, paste the exact validator output and I'll patch the bundle line-by-line.
+      </div>
     </div>
   );
 }
