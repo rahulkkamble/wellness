@@ -72,6 +72,7 @@ function extractAbhaAddresses(apiPatient) {
 function mapApiToForm(apiP) {
   return {
     api: apiP,
+    originalPatientId: apiP?.id ? String(apiP.id) : "unknown-id",
     resourceId: isUuid(apiP?.user_ref_id) ? apiP.user_ref_id.toLowerCase() : "",
     displayName: apiP?.name || "",
     gender: (apiP?.gender || "").toLowerCase(),
@@ -81,9 +82,42 @@ function mapApiToForm(apiP) {
     abhaRef: apiP?.abha_ref || "",
     abhaAddresses: extractAbhaAddresses(apiP),
     selectedAbhaAddress: undefined,
-    mrn: apiP?.user_id ? String(apiP.user_id) : "",
+    mrn: apiP?.user_ref_id ? apiP.user_ref_id : "",
   };
 }
+
+/* Resolve practitioner from window.GlobalPractitioner (FHIR) to {loginId,name,license} */
+// function resolveGlobalPractitioner() {
+//   const gp =
+//     (typeof window !== "undefined" && (window.GlobalPractitioner || window.GlobalPractitionerFHIR)) ||
+//     null;
+
+//   const fallback = { loginId: "pract-001", name: "Dr. ABC", license: "LIC-1234" };
+
+//   if (!gp) return fallback;
+
+//   // If already flattened
+//   if (gp && typeof gp === "object" && typeof gp.name === "string") {
+//     return {
+//       loginId: gp.id || fallback.loginId,
+//       name: gp.name || fallback.name,
+//       license: gp.license || fallback.license,
+//     };
+//   }
+
+//   // FHIR Practitioner shape
+//   const name =
+//     (Array.isArray(gp?.name) && gp?.name?.[0]?.text) ||
+//     (typeof gp?.name === "string" ? gp?.name : "") ||
+//     fallback.name;
+//   const license =
+//     (Array.isArray(gp?.identifier) && gp?.identifier?.[0]?.value) ||
+//     (typeof gp?.license === "string" ? gp?.license : "") ||
+//     fallback.license;
+//   const loginId = gp?.id || fallback.loginId;
+
+//   return { loginId, name, license };
+// }
 
 /* Resolve practitioner from window.GlobalPractitioner (FHIR) to {loginId,name,license} */
 function resolveGlobalPractitioner() {
@@ -189,6 +223,7 @@ function buildFhirPatient(form) {
 
 /* Build Practitioner resource (unchanged shape; id generated locally) */
 function buildPractitioner(pract) {
+  // const pract = window.GlobalPractitioner;
   const id = uuidv4();
   return {
     resourceType: "Practitioner",
@@ -202,19 +237,17 @@ function buildPractitioner(pract) {
       {
         system: "https://ndhm.in/practitioner/license",
         value: String(pract.license || ""),
-        type: {
-          coding: [{ system: V2_0203, code: "MD", display: "Medical License number" }],
-          text: "Medical License number",
-        },
+        type: { coding: [{ system: V2_0203, code: "MD", display: "Medical License number" }], text: "Medical License number" },
       },
       {
         system: "https://your.system/login-id",
-        value: String(pract.loginId || ""),
+        value: String(pract.id || ""),
         type: { coding: [{ system: V2_0203, code: "PN", display: "Person number" }], text: "Login id" },
       },
     ],
-    name: [{ text: pract.name }],
+    name: [{ text: pract.name[0].text }],
   };
+
 }
 
 /* Observation builders (unchanged) */
@@ -342,7 +375,7 @@ export default function App() {
   const [vitals, setVitals] = useState({ hr: "", systolic: "", diastolic: "", temp: "", spo2: "" });
   const [body, setBody] = useState({ height: "", weight: "", bmi: "" });
 
-  // const [bundleJson, setBundleJson] = useState("");
+  const [bundleJson, setBundleJson] = useState("");
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -520,10 +553,10 @@ export default function App() {
     } else {
       sections.push({
         title: "Vitals",
-        text: {
-          status: "generated",
-          div: `<div xmlns="http://www.w3.org/1999/xhtml">No vitals recorded</div>`,
-        },
+        // text: {
+        //   status: "generated",
+        //   div: `<div xmlns="http://www.w3.org/1999/xhtml">No vitals recorded</div>`,
+        // },
       });
     }
 
@@ -531,18 +564,18 @@ export default function App() {
       sections.push({
         title: "Physical Activity",
         entry: [{ reference: `urn:uuid:${physObs.id}` }],
-        text: {
-          status: "generated",
-          div: `<div xmlns="http://www.w3.org/1999/xhtml">Physical activity</div>`,
-        },
+        // text: {
+        //   status: "generated",
+        //   div: `<div xmlns="http://www.w3.org/1999/xhtml">Physical activity</div>`,
+        // },
       });
     } else {
       sections.push({
         title: "Physical Activity",
-        text: {
-          status: "generated",
-          div: `<div xmlns="http://www.w3.org/1999/xhtml">No physical activity recorded</div>`,
-        },
+        // text: {
+        //   status: "generated",
+        //   div: `<div xmlns="http://www.w3.org/1999/xhtml">No physical activity recorded</div>`,
+        // },
       });
     }
 
@@ -550,18 +583,18 @@ export default function App() {
       sections.push({
         title: "General Assessment",
         entry: [{ reference: `urn:uuid:${genObs.id}` }],
-        text: {
-          status: "generated",
-          div: `<div xmlns="http://www.w3.org/1999/xhtml">General assessment</div>`,
-        },
+        // text: {
+        //   status: "generated",
+        //   div: `<div xmlns="http://www.w3.org/1999/xhtml">General assessment</div>`,
+        // },
       });
     } else {
       sections.push({
         title: "General Assessment",
-        text: {
-          status: "generated",
-          div: `<div xmlns="http://www.w3.org/1999/xhtml">No general assessment recorded</div>`,
-        },
+        // text: {
+        //   status: "generated",
+        //   div: `<div xmlns="http://www.w3.org/1999/xhtml">No general assessment recorded</div>`,
+        // },
       });
     }
 
@@ -572,18 +605,18 @@ export default function App() {
       sections.push({
         title: "Lifestyle",
         entry: lifestyleEntries,
-        text: {
-          status: "generated",
-          div: `<div xmlns="http://www.w3.org/1999/xhtml">Lifestyle</div>`,
-        },
+        // text: {
+        //   status: "generated",
+        //   div: `<div xmlns="http://www.w3.org/1999/xhtml">Lifestyle</div>`,
+        // },
       });
     } else {
       sections.push({
         title: "Lifestyle",
-        text: {
-          status: "generated",
-          div: `<div xmlns="http://www.w3.org/1999/xhtml">No lifestyle observations recorded</div>`,
-        },
+        // text: {
+        //   status: "generated",
+        //   div: `<div xmlns="http://www.w3.org/1999/xhtml">No lifestyle observations recorded</div>`,
+        // },
       });
     }
 
@@ -623,13 +656,13 @@ export default function App() {
     for (const o of observations) bundle.entry.push({ fullUrl: `urn:uuid:${o.id}`, resource: o });
 
     const json = JSON.stringify(bundle, null, 2);
-    // setBundleJson(json);
+    setBundleJson(json);
     setMessage(
       "Bundle generated — copy-paste into Inferno/validator. If any remaining validation errors appear, paste them and I'll patch them exactly."
     );
 
     // Axios POST (like before) with original patient id from API data
-    const originalPatientId = String(form?.api?.id || "");
+    const originalPatientId = Number(form?.api?.user_id);
     console.log("Submitting for patient:", originalPatientId);
     try {
       const resp = await axios.post("https://uat.discharge.org.in/api/v5/fhir-bundle", {
@@ -648,10 +681,10 @@ export default function App() {
     }, 80);
   }
 
-  // function copyBundle() {
-  //   if (!bundleJson) return;
-  //   navigator.clipboard.writeText(bundleJson).then(() => alert("Copied bundle JSON to clipboard"));
-  // }
+  function copyBundle() {
+    if (!bundleJson) return;
+    navigator.clipboard.writeText(bundleJson).then(() => alert("Copied bundle JSON to clipboard"));
+  }
 
   return (
     <div className="container my-4">
@@ -917,7 +950,7 @@ export default function App() {
         {/* <button
           className="btn btn-outline-secondary"
           onClick={() => {
-            // setBundleJson("");
+            setBundleJson("");
             setMessage("");
           }}
         >
@@ -943,6 +976,11 @@ export default function App() {
         </div>
       )} */}
 
+      {/* <div className="text-muted small">
+        Notes: coding uses LOINC (http://loinc.org) or SNOMED (http://snomed.info/sct) to satisfy NDHM
+        slicing; Composition sections include proper text objects when empty to obey cmp-1. If Inferno
+        shows remaining messages, paste the exact validator output and I'll patch the bundle line-by-line.
+      </div> */}
     </div>
   );
 }
