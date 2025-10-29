@@ -9,10 +9,10 @@ import "bootstrap/dist/css/bootstrap.min.css";
   - Fetch /patients.json
   - Patient dropdown (name/gender/dob/mrn displayed)
   - ABHA address dropdown (appears after patient selected)
-  - Single practitioner (from window.GlobalPractitioner FHIR object) used as author/attester/performer
+  - Single practitioner (from window.GlobalPractioner FHIR object) used as author/attester/performer
   - Generates a NDHM-friendly FHIR Bundle (Composition, Patient, Practitioner, Observations)
   - Additions:
-    - Practitioner sourced from window.GlobalPractitioner with safe fallbacks (id/name/license)
+    - Practitioner sourced from window.GlobalPractioner with safe fallbacks (id/name/license)
     - Axios POST to /api/v5/fhir-bundle with { bundle, patient: <originalPatientId> }
     - Patient and practitioner UI fields set to read-only (ABHA address selection remains enabled)
   - Logic otherwise unchanged
@@ -86,10 +86,10 @@ function mapApiToForm(apiP) {
   };
 }
 
-/* Resolve practitioner from window.GlobalPractitioner (FHIR) to {loginId,name,license} */
+/* Resolve practitioner from window.GlobalPractioner (FHIR) to {loginId,name,license} */
 // function resolveGlobalPractitioner() {
 //   const gp =
-//     (typeof window !== "undefined" && (window.GlobalPractitioner || window.GlobalPractitionerFHIR)) ||
+//     (typeof window !== "undefined" && (window.GlobalPractioner || window.GlobalPractionerFHIR)) ||
 //     null;
 
 //   const fallback = { loginId: "pract-001", name: "Dr. ABC", license: "LIC-1234" };
@@ -119,10 +119,10 @@ function mapApiToForm(apiP) {
 //   return { loginId, name, license };
 // }
 
-/* Resolve practitioner from window.GlobalPractitioner (FHIR) to {loginId,name,license} */
+/* Resolve practitioner from window.GlobalPractioner (FHIR) to {loginId,name,license} */
 function resolveGlobalPractitioner() {
   const gp =
-    (typeof window !== "undefined" && (window.GlobalPractitioner || window.GlobalPractitionerFHIR)) ||
+    (typeof window !== "undefined" && (window.GlobalPractioner || window.GlobalPractionerFHIR)) ||
     null;
 
   const fallback = { loginId: "pract-001", name: "Dr. ABC", license: "LIC-1234" };
@@ -223,7 +223,7 @@ function buildFhirPatient(form) {
 
 /* Build Practitioner resource (unchanged shape; id generated locally) */
 function buildPractitioner(pract) {
-  // const pract = window.GlobalPractitioner;
+  // const pract = window.GlobalPractioner;
   const id = uuidv4();
   return {
     resourceType: "Practitioner",
@@ -241,11 +241,11 @@ function buildPractitioner(pract) {
       },
       {
         system: "https://your.system/login-id",
-        value: String(pract.id || ""),
+        value: String(pract.loginId || "pract-001"),
         type: { coding: [{ system: V2_0203, code: "PN", display: "Person number" }], text: "Login id" },
       },
     ],
-    name: [{ text: pract.name[0].text }],
+    name: [{ text: String(pract.name || "Dr. ABC") }],
   };
 
 }
@@ -381,11 +381,19 @@ export default function App() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch("/patients.json", { cache: "no-store" });
-        const data = await res.json();
-        const arr = Array.isArray(data) ? data : data?.data ?? [];
-        setApiPatients(arr);
-        const mapped = arr.map(mapApiToForm);
+        // 🔹 Try live API first
+        const apiRes = await fetch(window.GlobalPatientAPI || "/api/v5/patients", {
+          headers: {
+            "Content-Type": "application/json",
+            ...(window.GlobalAuthToken ? { "Authorization": `Bearer ${window.GlobalAuthToken}` } : {})
+          }
+        });
+        if (!apiRes.ok) throw new Error("API fetch failed");
+        const apiData = await apiRes.json();
+        if (!Array.isArray(apiData) || apiData.length === 0) throw new Error("API returned empty");
+
+        setApiPatients(apiData);
+        const mapped = apiData.map(mapApiToForm);
         setForms(mapped);
         if (mapped.length > 0) {
           setSelectedIndex(0);
@@ -395,9 +403,28 @@ export default function App() {
               (mapped[0].abhaAddresses && mapped[0].abhaAddresses[0]) || mapped[0].abhaRef || "",
           });
         }
-      } catch (err) {
-        console.error("Failed to load patients.json", err);
-        setMessage("Failed to load patients.json — place the file in public/patients.json and reload.");
+      } catch (apiErr) {
+        alert("⚠️ Patient not found in API. Falling back to local patients.json.");
+        console.warn("API fetch failed, falling back to local patients.json", apiErr);
+        try {
+          const localRes = await fetch("/patients.json", { cache: "no-store" });
+          const localData = await localRes.json();
+          const arr = Array.isArray(localData) ? localData : localData?.data ?? [];
+          setApiPatients(arr);
+          const mapped = arr.map(mapApiToForm);
+          setForms(mapped);
+          if (mapped.length > 0) {
+            setSelectedIndex(0);
+            setForm({
+              ...mapped[0],
+              selectedAbhaAddress:
+                (mapped[0].abhaAddresses && mapped[0].abhaAddresses[0]) || mapped[0].abhaRef || "",
+            });
+          }
+        } catch (localErr) {
+          console.error("Failed to fetch local patients.json:", localErr);
+          setMessage("Failed to load patients.json — place the file in public/patients.json and reload.");
+        }
       }
     })();
   }, []);
@@ -553,10 +580,10 @@ export default function App() {
     } else {
       sections.push({
         title: "Vitals",
-        // text: {
-        //   status: "generated",
-        //   div: `<div xmlns="http://www.w3.org/1999/xhtml">No vitals recorded</div>`,
-        // },
+        text: {
+          status: "generated",
+          div: `<div xmlns="http://www.w3.org/1999/xhtml">No vitals recorded</div>`,
+        },
       });
     }
 
@@ -658,7 +685,7 @@ export default function App() {
     const json = JSON.stringify(bundle, null, 2);
     setBundleJson(json);
     setMessage(
-      "Bundle generated — copy-paste into Inferno/validator. If any remaining validation errors appear, paste them and I'll patch them exactly."
+      "Form Submitted."
     );
 
     // Axios POST (like before) with original patient id from API data
@@ -672,7 +699,7 @@ export default function App() {
       console.log("FHIR Bundle Submitted:", resp.data);
     } catch (error) {
       console.error("Error submitting FHIR Bundle:", error?.response?.data || error.message);
-      console.error("Failed submission for patient:", originalPatientId);
+      console.error("Failed submission for patient:", bundle, originalPatientId);
     }
 
     setTimeout(() => {
@@ -759,8 +786,8 @@ export default function App() {
                   {(form.abhaAddresses && form.abhaAddresses.length > 0
                     ? form.abhaAddresses
                     : form.abhaRef
-                    ? [form.abhaRef]
-                    : []
+                      ? [form.abhaRef]
+                      : []
                   ).map((a, i) => (
                     <option key={i} value={a}>
                       {a}

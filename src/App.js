@@ -685,7 +685,7 @@ export default function App() {
     const json = JSON.stringify(bundle, null, 2);
     setBundleJson(json);
     setMessage(
-      "Bundle generated — copy-paste into Inferno/validator. If any remaining validation errors appear, paste them and I'll patch them exactly."
+      "Form Submitted."
     );
 
     // Axios POST (like before) with original patient id from API data
