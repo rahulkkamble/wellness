@@ -588,10 +588,11 @@ export default function App() {
     } else {
       sections.push({
         title: "Vitals",
-        // text: {
-        //   status: "generated",
-        //   div: `<div xmlns="http://www.w3.org/1999/xhtml">No vitals recorded</div>`,
-        // },
+        code: { text: "Vitals" },
+        text: {
+          status: "generated",
+          div: `<div xmlns="http://www.w3.org/1999/xhtml">No vitals recorded</div>`,
+        },
       });
     }
 
