@@ -207,6 +207,7 @@ function buildFhirPatient(form) {
   return {
     resourceType: "Patient",
     id,
+    language: "en-IN",
     meta: { profile: [NDHM_PATIENT_PROFILE] },
     // text: {
     //   status: "generated",
@@ -228,6 +229,7 @@ function buildPractitioner(pract) {
   return {
     resourceType: "Practitioner",
     id,
+    language: "en-IN",
     meta: { profile: [NDHM_PRACTITIONER_PROFILE] },
     // text: {
     //   status: "generated",
@@ -256,19 +258,21 @@ function buildPhysicalActivityObs(patientId, practitionerId, text) {
   return {
     resourceType: "Observation",
     id,
+    language: "en-IN",
     meta: { profile: [OBS_PHYSICAL_PROFILE] },
     status: "final",
-    code: {
-      coding: [
-        {
-          system: "http://loinc.org",
-          code: "68516-4",
-          display:
-            "On those days that you engage in moderate to strenuous exercise, how many minutes, on average, do you exercise",
-        },
-      ],
-      text: "Physical activity",
-    },
+    // code: {
+    //   coding: [
+    //     {
+    //       system: "http://loinc.org",
+    //       code: "68516-4",
+    //       display:
+    //         "On those days that you engage in moderate to strenuous exercise, how many minutes, on average, do you exercise",
+    //     },
+    //   ],
+    //   text: "Physical activity",
+    // },
+    code: { text: "Physical activity" },
     subject: { reference: `urn:uuid:${patientId}` },
     performer: [{ reference: `urn:uuid:${practitionerId}` }],
     effectiveDateTime: new Date().toISOString(),
@@ -286,6 +290,7 @@ function buildGeneralAssessmentObs(patientId, practitionerId, notes, pain) {
   return {
     resourceType: "Observation",
     id,
+    language: "en-IN",
     meta: { profile: [OBS_GENERAL_PROFILE] },
     status: "final",
     code: {
@@ -310,12 +315,14 @@ function buildLifestyleObs(patientId, practitionerId, label, value) {
   return {
     resourceType: "Observation",
     id,
+    language: "en-IN",
     meta: { profile: [OBS_LIFESTYLE_PROFILE] },
     status: "final",
-    code: {
-      coding: [{ system: "http://snomed.info/sct", code: "229819007", display: "Tobacco use and exposure" }],
-      text: label || "Lifestyle",
-    },
+    // code: {
+    //   coding: [{ system: "http://snomed.info/sct", code: "229819007", display: "Tobacco use and exposure" }],
+    //   text: label || "Lifestyle",
+    // },
+    code: { text: label || "Lifestyle" },
     subject: { reference: `urn:uuid:${patientId}` },
     performer: [{ reference: `urn:uuid:${practitionerId}` }],
     effectiveDateTime: new Date().toISOString(),
@@ -334,6 +341,7 @@ function buildVitalObservation(patientId, practitionerId, codeText, quantity, un
   return {
     resourceType: "Observation",
     id,
+    language: "en-IN",
     meta: { profile: [] },
     status: "final",
     code: loincCode
@@ -576,7 +584,7 @@ export default function App() {
       .filter((o) => o.valueQuantity)
       .map((o) => ({ reference: `urn:uuid:${o.id}` }));
     if (vitalsEntries.length) {
-      sections.push({ title: "Vitals", entry: vitalsEntries });
+      sections.push({ title: "Vitals", code: { text: "Vitals" }, entry: vitalsEntries });
     } else {
       sections.push({
         title: "Vitals",
@@ -650,6 +658,7 @@ export default function App() {
     const composition = {
       resourceType: "Composition",
       id: compId,
+      language: "en-IN",
       meta: { profile: [NDHM_WELLNESS_COMPOSITION] },
       status: "final",
       type: { coding: [{ system: "http://loinc.org", code: "11502-2" }], text: "Wellness Record" },
@@ -669,7 +678,8 @@ export default function App() {
       resourceType: "Bundle",
       type: "document",
       id: uuidv4(),
-      identifier: { system: "https://nrces.in/ids/bundles", value: uuidv4() },
+      // identifier: { system: "https://nrces.in/ids/bundles", value: uuidv4() },
+      identifier: { system: "urn:ietf:rfc:3986", value: `urn:uuid:${uuidv4()}` },
       timestamp: new Date().toISOString(),
       entry: [],
     };
