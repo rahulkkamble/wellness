@@ -209,10 +209,10 @@ function buildFhirPatient(form) {
     id,
     language: "en-IN",
     meta: { profile: [NDHM_PATIENT_PROFILE] },
-    // text: {
-    //   status: "generated",
-    //   div: `<div xmlns="http://www.w3.org/1999/xhtml"><p>${form.displayName}</p></div>`,
-    // },
+    text: {
+      status: "generated",
+      div: `<div xmlns="http://www.w3.org/1999/xhtml" lang="en-IN" xml:lang="en-IN"><p>${form.displayName}</p></div>`,
+    },
     identifier,
     name: [{ text: form.displayName }],
     gender: form.gender || undefined,
@@ -231,10 +231,10 @@ function buildPractitioner(pract) {
     id,
     language: "en-IN",
     meta: { profile: [NDHM_PRACTITIONER_PROFILE] },
-    // text: {
-    //   status: "generated",
-    //   div: `<div xmlns="http://www.w3.org/1999/xhtml"><p>${pract.name}</p></div>`,
-    // },
+    text: {
+      status: "generated",
+      div: `<div xmlns="http://www.w3.org/1999/xhtml" lang="en-IN" xml:lang="en-IN"><h3>Practitioner</h3><p>${pract.name}</p><p>License: ${pract.license}</p></div>`,
+    },
     identifier: [
       {
         system: "https://ndhm.in/practitioner/license",
@@ -272,15 +272,23 @@ function buildPhysicalActivityObs(patientId, practitionerId, text) {
     //   ],
     //   text: "Physical activity",
     // },
-    code: { text: "Physical activity" },
+    code: {
+      coding: [{
+        system: "http://loinc.org",
+        code: "68516-4",
+        display: "On those days that you engage in moderate to strenuous exercise, how many minutes, on average, do you exercise"
+      }],
+      text: "Physical activity"
+    },
+
     subject: { reference: `urn:uuid:${patientId}` },
     performer: [{ reference: `urn:uuid:${practitionerId}` }],
     effectiveDateTime: new Date().toISOString(),
     valueString: text || "Not provided",
-    // text: {
-    //   status: "generated",
-    //   div: `<div xmlns="http://www.w3.org/1999/xhtml"><p>${text || "Not provided"}</p></div>`,
-    // },
+    text: {
+      status: "generated",
+      div: `<div xmlns="http://www.w3.org/1999/xhtml" lang="en-IN" xml:lang="en-IN"><h3>Physical activity</h3><p>${text || "Not provided"}</p></div>`,
+    },
   };
 }
 
@@ -302,10 +310,10 @@ function buildGeneralAssessmentObs(patientId, practitionerId, notes, pain) {
     effectiveDateTime: new Date().toISOString(),
     valueCodeableConcept: { text: textVal },
     component: [{ code: { text: "Any current pain?" }, valueCodeableConcept: { text: pain ? "Yes" : "No" } }],
-    // text: {
-    //   status: "generated",
-    //   div: `<div xmlns="http://www.w3.org/1999/xhtml"><p>${textVal}</p></div>`,
-    // },
+    text: {
+      status: "generated",
+      div: `<div xmlns="http://www.w3.org/1999/xhtml" lang="en-IN" xml:lang="en-IN"><h3>General assessment</h3><p>${textVal}</p><p>Pain: ${pain ? "Yes" : "No"}</p></div>`,
+    },
   };
 }
 
@@ -322,15 +330,17 @@ function buildLifestyleObs(patientId, practitionerId, label, value) {
     //   coding: [{ system: "http://snomed.info/sct", code: "229819007", display: "Tobacco use and exposure" }],
     //   text: label || "Lifestyle",
     // },
-    code: { text: label || "Lifestyle" },
-    subject: { reference: `urn:uuid:${patientId}` },
+    code: {
+      coding: [{ system: "http://snomed.info/sct", code: "229819007", display: "Tobacco use and exposure" }],
+      text: label || "Lifestyle"
+    }, subject: { reference: `urn:uuid:${patientId}` },
     performer: [{ reference: `urn:uuid:${practitionerId}` }],
     effectiveDateTime: new Date().toISOString(),
     valueCodeableConcept: { text: v },
-    // text: {
-    //   status: "generated",
-    //   div: `<div xmlns="http://www.w3.org/1999/xhtml"><p>${label}: ${v}</p></div>`,
-    // },
+    text: {
+      status: "generated",
+      div: `<div xmlns="http://www.w3.org/1999/xhtml" lang="en-IN" xml:lang="en-IN"><h3>${label || "Lifestyle"}</h3><p>${v}</p></div>`,
+    },
   };
 }
 
@@ -356,10 +366,10 @@ function buildVitalObservation(patientId, practitionerId, codeText, quantity, un
       system: "http://unitsofmeasure.org",
       code: unit || "",
     },
-    // text: {
-    //   status: "generated",
-    //   div: `<div xmlns="http://www.w3.org/1999/xhtml"><p>${codeText}: ${quantity} ${unit || ""}</p></div>`,
-    // },
+    text: {
+      status: "generated",
+      div: `<div xmlns="http://www.w3.org/1999/xhtml" lang="en-IN" xml:lang="en-IN"><h3>${codeText}</h3><p>${quantity} ${unit || ""}</p></div>`,
+    },
   };
 }
 
@@ -600,18 +610,18 @@ export default function App() {
       sections.push({
         title: "Physical Activity",
         entry: [{ reference: `urn:uuid:${physObs.id}` }],
-        // text: {
-        //   status: "generated",
-        //   div: `<div xmlns="http://www.w3.org/1999/xhtml">Physical activity</div>`,
-        // },
+        text: {
+          status: "generated",
+          div: `<div xmlns="http://www.w3.org/1999/xhtml">Physical activity</div>`,
+        },
       });
     } else {
       sections.push({
         title: "Physical Activity",
-        // text: {
-        //   status: "generated",
-        //   div: `<div xmlns="http://www.w3.org/1999/xhtml">No physical activity recorded</div>`,
-        // },
+        text: {
+          status: "generated",
+          div: `<div xmlns="http://www.w3.org/1999/xhtml">No physical activity recorded</div>`,
+        },
       });
     }
 
@@ -619,18 +629,18 @@ export default function App() {
       sections.push({
         title: "General Assessment",
         entry: [{ reference: `urn:uuid:${genObs.id}` }],
-        // text: {
-        //   status: "generated",
-        //   div: `<div xmlns="http://www.w3.org/1999/xhtml">General assessment</div>`,
-        // },
+        text: {
+          status: "generated",
+          div: `<div xmlns="http://www.w3.org/1999/xhtml">General assessment</div>`,
+        },
       });
     } else {
       sections.push({
         title: "General Assessment",
-        // text: {
-        //   status: "generated",
-        //   div: `<div xmlns="http://www.w3.org/1999/xhtml">No general assessment recorded</div>`,
-        // },
+        text: {
+          status: "generated",
+          div: `<div xmlns="http://www.w3.org/1999/xhtml">No general assessment recorded</div>`,
+        },
       });
     }
 
@@ -641,18 +651,18 @@ export default function App() {
       sections.push({
         title: "Lifestyle",
         entry: lifestyleEntries,
-        // text: {
-        //   status: "generated",
-        //   div: `<div xmlns="http://www.w3.org/1999/xhtml">Lifestyle</div>`,
-        // },
+        text: {
+          status: "generated",
+          div: `<div xmlns="http://www.w3.org/1999/xhtml">Lifestyle</div>`,
+        },
       });
     } else {
       sections.push({
         title: "Lifestyle",
-        // text: {
-        //   status: "generated",
-        //   div: `<div xmlns="http://www.w3.org/1999/xhtml">No lifestyle observations recorded</div>`,
-        // },
+        text: {
+          status: "generated",
+          div: `<div xmlns="http://www.w3.org/1999/xhtml">No lifestyle observations recorded</div>`,
+        },
       });
     }
 
@@ -669,10 +679,10 @@ export default function App() {
       attester: [{ mode: "official", party: { reference: `urn:uuid:${practitionerRes.id}` } }],
       title: "Wellness Record",
       section: sections,
-      // text: {
-      //   status: "generated",
-      //   div: `<div xmlns="http://www.w3.org/1999/xhtml"><h3>Wellness Record - ${form.displayName}</h3></div>`,
-      // },
+      text: {
+        status: "generated",
+        div: `<div xmlns="http://www.w3.org/1999/xhtml" lang="en-IN" xml:lang="en-IN"><h3>Wellness Record</h3><p>Subject: ${form.displayName}</p><p>Author: ${practitioner.name}</p></div>`,
+      },
     };
 
     const bundle = {
